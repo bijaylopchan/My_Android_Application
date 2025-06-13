@@ -1,0 +1,95 @@
+package com.example.myandroidapplication
+
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import androidx.test.core.app.ActivityScenario
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.*
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers.*
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
+@RunWith(AndroidJUnit4::class)
+class MainActivityTest {
+
+    private lateinit var mockWebServer: MockWebServer
+    private lateinit var apiService: ApiService
+
+    @Before
+    fun setup() {
+        mockWebServer = MockWebServer()
+        mockWebServer.start()
+
+        apiService = Retrofit.Builder()
+            .baseUrl(mockWebServer.url("/"))
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
+        RetrofitClient.injectTestInstance(apiService)
+    }
+
+    @After
+    fun teardown() {
+        mockWebServer.shutdown()
+    }
+
+    @Test
+    fun testSuccessfulLogin_showsToken() {
+        val mockToken = "mocked_jwt_token_123"
+        val mockResponse = MockResponse()
+            .setBody("""
+                {"keypass":"$mockToken"}
+            """.trimIndent())
+            .setHeader("Content-Type", "application/json")
+            .setResponseCode(200)
+        mockWebServer.enqueue(mockResponse)
+
+        ActivityScenario.launch(MainActivity::class.java)
+        onView(withId(R.id.etUsername)).perform(typeText("Bijay"), closeSoftKeyboard())
+        onView(withId(R.id.etPassword)).perform(typeText("password123"), closeSoftKeyboard())
+
+        onView(withId(R.id.btnLogin)).perform(click())
+
+
+        onView(withId(R.id.tvResult))
+            .check(matches(withText("Login success! Token: $mockToken")))
+    }
+
+    @Test
+    fun testFailedLogin_showsError() {
+        // Set up failed response
+        val mockResponse = MockResponse()
+            .setResponseCode(401)
+            .setBody("Unauthorized")
+        mockWebServer.enqueue(mockResponse)
+
+        ActivityScenario.launch(MainActivity::class.java)
+
+        onView(withId(R.id.etUsername)).perform(typeText("wrong"), closeSoftKeyboard())
+        onView(withId(R.id.etPassword)).perform(typeText("wrongpass"), closeSoftKeyboard())
+
+        onView(withId(R.id.btnLogin)).perform(click())
+
+        onView(withId(R.id.tvResult))
+            .check(matches(withText("Login failed: Check credentials")))
+    }
+
+    @Test
+    fun testEmptyFields_showsWarning() {
+        ActivityScenario.launch(MainActivity::class.java)
+
+        onView(withId(R.id.btnLogin)).perform(click())
+
+        onView(withId(R.id.tvResult))
+            .check(matches(withText("Please fill in both fields")))
+    }
+}

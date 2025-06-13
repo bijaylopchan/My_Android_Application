@@ -1,0 +1,90 @@
+package com.example.myandroidapplication
+
+import android.view.View
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+class ExerciseAdapterTest {
+
+    private lateinit var mockExercises: List<Exercise>
+    private lateinit var onItemClick: (Exercise) -> Unit
+    private lateinit var adapter: ExerciseAdapter
+
+    @Before
+    fun setup() {
+        mockExercises = listOf(
+            Exercise(
+                exerciseName = "Push-up",
+                muscleGroup = "Chest",
+                equipment = "Bodyweight",
+                difficulty = "Beginner",
+                caloriesBurnedPerHour = 300
+            ),
+            Exercise(
+                exerciseName = "Squat",
+                muscleGroup = "Legs",
+                equipment = "Dumbbell",
+                difficulty = "Intermediate",
+                caloriesBurnedPerHour = 400
+            )
+        )
+
+        onItemClick = { /* Mock click behavior if needed */ }
+
+        adapter = ExerciseAdapter(mockExercises, onItemClick)
+    }
+
+    @Test
+    fun `adapter should have correct item count`() {
+        assertEquals(mockExercises.size, adapter.itemCount)
+    }
+
+    @Test
+    fun `onCreateViewHolder should not be null`() {
+        val holder = adapter.onCreateViewHolder(mockViewGroup(), 0)
+        assertNotNull(holder)
+    }
+
+    @Test
+    fun `onBindViewHolder should bind correct data`() {
+        val holder = adapter.onCreateViewHolder(mockViewGroup(), 0)
+        adapter.onBindViewHolder(holder, 0)
+
+        val boundExercise = mockExercises[0]
+        assertEquals(boundExercise.exerciseName, holder.binding.tvExerciseName.text.toString())
+        assertEquals(boundExercise.muscleGroup, holder.binding.tvMuscleGroup.text.toString())
+        assertEquals(boundExercise.equipment, holder.binding.tvEquipment.text.toString())
+        assertEquals(boundExercise.difficulty, holder.binding.tvDifficulty.text.toString())
+        assertEquals("${boundExercise.caloriesBurnedPerHour} cal", holder.binding.tvCalories.text.toString())
+    }
+
+    @Test
+    fun `item click should trigger onItemClick`() {
+        var clickedExercise: Exercise? = null
+        val clickAdapter = ExerciseAdapter(mockExercises) { exercise ->
+            clickedExercise = exercise
+        }
+
+        val holder = clickAdapter.onCreateViewHolder(mockViewGroup(), 0)
+        clickAdapter.onBindViewHolder(holder, 0)
+
+        holder.binding.root.performClick()
+
+        assertNotNull(clickedExercise)
+        assertEquals(mockExercises[0], clickedExercise)
+    }
+
+    private fun mockViewGroup(): ViewGroup {
+        return object : ViewGroup(ApplicationProvider.getApplicationContext()) {
+            override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {}
+            override fun addView(child: View?) {}
+        }
+    }
+}

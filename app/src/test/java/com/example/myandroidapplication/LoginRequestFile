@@ -1,0 +1,17 @@
+package com.example.myandroidapplication
+
+import org.junit.Test
+import org.junit.Assert.*
+
+class LoginRequestTest {
+
+    @Test
+    fun `login request fields should be set correctly`() {
+        val request = LoginRequest("Bijay Tamang", "s8169144")
+        assertEquals("Bijay Tamang", request.username)
+        assertEquals("s8169144", request.password)
+    }
+}
+
+
+

@@ -1,0 +1,34 @@
+package com.example.myandroidapplication
+
+import org.junit.Test
+import retrofit2.http.*
+import java.lang.reflect.Method
+
+class ApiServiceTest {
+
+    @Test
+    fun `login method should be POST with correct path and body`() {
+        val method = getMethod("login", LoginRequest::class.java)
+        assertTrue(method.isAnnotationPresent(POST::class.java))
+        val postAnnotation = method.getAnnotation(POST::class.java)
+        assertEquals("sydney/auth", postAnnotation.value)
+        val paramAnnotations = method.parameterAnnotations[0]
+        assertTrue(paramAnnotations.any { it is Body })
+    }
+
+    @Test
+    fun `getDashboard method should be GET with correct path and Authorization header`() {
+        val method = getMethod("getDashboard", String::class.java)
+        assertTrue(method.isAnnotationPresent(GET::class.java))
+        val getAnnotation = method.getAnnotation(GET::class.java)
+        assertEquals("dashboard/fitness", getAnnotation.value)
+        val paramAnnotations = method.parameterAnnotations[0]
+        val headerAnnotation = paramAnnotations.find { it is Header } as Header?
+        assertNotNull(headerAnnotation)
+        assertEquals("Authorization", headerAnnotation?.value)
+    }
+
+    private fun getMethod(methodName: String, vararg parameterTypes: Class<*>): Method {
+        return ApiService::class.java.getMethod(methodName, *parameterTypes)
+    }
+}

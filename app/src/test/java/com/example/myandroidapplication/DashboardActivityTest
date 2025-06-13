@@ -1,0 +1,132 @@
+package com.example.myandroidapplication
+
+import android.content.Intent
+import androidx.test.core.app.ActivityScenario
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers.*
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+class DashboardActivityTest {
+
+    private lateinit var mockWebServer: MockWebServer
+
+    @Before
+    fun setup() {
+        mockWebServer = MockWebServer()
+        mockWebServer.start()
+
+        // Replace base URL with mock server URL
+        RetrofitClient.injectBaseUrl(mockWebServer.url("/"))
+    }
+
+    @After
+    fun teardown() {
+        mockWebServer.shutdown()
+    }
+
+    @Test
+    fun testExerciseListDisplays_whenApiReturnsData() {
+        val mockResponse = """
+            {
+              "entityTotal": 2,
+              "entities": [
+                {
+                  "exerciseName": "Push-up",
+                  "muscleGroup": "Chest",
+                  "equipment": "Bodyweight",
+                  "difficulty": "Beginner",
+                  "caloriesBurnedPerHour": 300,
+                  "description": "A basic push-up to build chest strength."
+                },
+                {
+                  "exerciseName": "Squat",
+                  "muscleGroup": "Legs",
+                  "equipment": "Dumbbell",
+                  "difficulty": "Intermediate",
+                  "caloriesBurnedPerHour": 400,
+                  "description": "An effective lower body exercise."
+                }
+              ]
+            }
+        """.trimIndent()
+
+        mockWebServer.enqueue(MockResponse().setBody(mockResponse).setHeader("Content-Type", "application/json"))
+
+        val intent = Intent().putExtra("keypass", "mocked_token_123")
+        ActivityScenario.launch<DashboardActivity>(intent)
+
+        onView(withId(R.id.recyclerViewExercises)).check(matches(isDisplayed()))
+        onView(withId(R.id.tvEmptyState)).check(matches(not(isDisplayed())))
+
+        onView(withId(R.id.tvTotalExercises)).check(matches(withText("Total: 2 exercises")))
+
+        onView(withText("Push-up")).check(matches(isDisplayed()))
+
+        onView(withText("Squat")).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun testEmptyStateDisplays_whenApiReturnsNoData() {
+        val mockResponse = """
+            {
+              "entityTotal": 0,
+              "entities": []
+            }
+        """.trimIndent()
+
+        mockWebServer.enqueue(MockResponse().setBody(mockResponse).setHeader("Content-Type", "application/json"))
+
+        val intent = Intent().putExtra("keypass", "mocked_token_123")
+        ActivityScenario.launch<DashboardActivity>(intent)
+
+        onView(withId(R.id.tvEmptyState)).check(matches(isDisplayed()))
+        onView(withId(R.id.recyclerViewExercises)).check(matches(not(isDisplayed())))
+    }
+
+    @Test
+    fun testLogoutButtonNavigatesToMainActivity() {
+        mockWebServer.enqueue(MockResponse().setResponseCode(200))
+
+        val intent = Intent().putExtra("keypass", "mocked_token_123")
+        val scenario = ActivityScenario.launch<DashboardActivity>(intent)
+
+        onView(withId(R.id.btnLogout)).perform(click())
+        scenario.close()
+    }
+
+    @Test
+    fun testSwipeRefreshTriggersNetworkCall() {
+        val mockResponse = """
+            {
+              "entityTotal": 1,
+              "entities": [
+                {
+                  "exerciseName": "Crunch",
+                  "muscleGroup": "Abs",
+                  "equipment": "Bodyweight",
+                  "difficulty": "Beginner",
+                  "caloriesBurnedPerHour": 250,
+                  "description": "Core strengthening exercise."
+                }
+              ]
+            }
+        """.trimIndent()
+
+        mockWebServer.enqueue(MockResponse().setBody(mockResponse).setHeader("Content-Type", "application/json"))
+
+        val intent = Intent().putExtra("keypass", "mocked_token_123")
+        ActivityScenario.launch<DashboardActivity>(intent)
+
+        onView(withId(R.id.swipeRefreshLayout)).perform(swipeDown())
+        onView(withText("Crunch")).check(matches(isDisplayed()))
+    }
+}
