@@ -1,0 +1,62 @@
+package com.example.myandroidapplication
+
+import android.os.Parcel
+import org.junit.Test
+import org.junit.Assert.*
+
+class ExerciseTest {
+
+    private val exerciseName = "Push-up"
+    private val muscleGroup = "Chest"
+    private val equipment = "Bodyweight"
+    private val difficulty = "Beginner"
+    private val caloriesBurnedPerHour = 300
+    private val description = "A basic push-up to build chest strength."
+
+    @Test
+    fun `exercise should have correct properties`() {
+        val exercise = Exercise(
+            exerciseName = exerciseName,
+            muscleGroup = muscleGroup,
+            equipment = equipment,
+            difficulty = difficulty,
+            caloriesBurnedPerHour = caloriesBurnedPerHour,
+            description = description
+        )
+
+        assertEquals(exerciseName, exercise.exerciseName)
+        assertEquals(muscleGroup, exercise.muscleGroup)
+        assertEquals(equipment, exercise.equipment)
+        assertEquals(difficulty, exercise.difficulty)
+        assertEquals(caloriesBurnedPerHour, exercise.caloriesBurnedPerHour)
+        assertEquals(description, exercise.description)
+    }
+
+    @Test
+    fun `exercise should implement Parcelable and retain data when parceled`() {
+        val original = Exercise(
+            exerciseName = exerciseName,
+            muscleGroup = muscleGroup,
+            equipment = equipment,
+            difficulty = difficulty,
+            caloriesBurnedPerHour = caloriesBurnedPerHour,
+            description = description
+        )
+
+        val parcel = Parcel.obtain()
+        original.writeToParcel(parcel, 0)
+
+        parcel.setDataPosition(0)
+
+        val copy = Exercise.CREATOR.createFromParcel(parcel)
+
+        assertEquals(original.exerciseName, copy.exerciseName)
+        assertEquals(original.muscleGroup, copy.muscleGroup)
+        assertEquals(original.equipment, copy.equipment)
+        assertEquals(original.difficulty, copy.difficulty)
+        assertEquals(original.caloriesBurnedPerHour, copy.caloriesBurnedPerHour)
+        assertEquals(original.description, copy.description)
+
+        parcel.recycle()
+    }
+}
