@@ -31,10 +31,10 @@ A simple Android fitness application that allows users to log in, view a dashboa
 
 ## Usage
 
-Launch the app.
-Enter your username and password on the login screen.
-Upon successful login, you will be taken to the dashboard displaying exercises.
-Tap an exercise to view detailed information.
+1. Launch the app.
+2. Enter your username and password on the login screen.
+3. Upon successful login, you will be taken to the dashboard displaying exercises.
+4. Tap an exercise to view detailed information.
 
 
 
