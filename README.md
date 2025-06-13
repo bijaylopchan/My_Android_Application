@@ -36,5 +36,18 @@ A simple Android fitness application that allows users to log in, view a dashboa
 3. Upon successful login, you will be taken to the dashboard displaying exercises.
 4. Tap an exercise to view detailed information.
 
+## Screenshots
+
+### Login Screen
+![Login Screen](screenshots/LoginScreen.png)
+
+### Dashboard
+![Dashboard](screenshots/DashboardScreen.png)
+
+### Exercise Details
+![Exercise Details](screenshots/DetailScreen.png)
+
+
+
 
 
